@@ -1,3 +1,9 @@
+"""
+Resources:
+__________
+https://discordpy.readthedocs.io/en/stable/
+"""
+
 import discord as dpy
 import random
 import json
@@ -29,6 +35,10 @@ async def on_member_join(member):
 
 @client.event
 async def on_message(message):
+
+    if (message.channel.category_id != 885930648097927188):
+        return
+
     if message.content == 'hi':
         await message.channel.send('hello!')
 
