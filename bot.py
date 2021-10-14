@@ -33,7 +33,7 @@ async def on_message(message):
         await message.channel.send('uncertain')
 
     elif 'LongChamp' in message.content:
-        await message.channel.send(file=discord.File('C:/Users/Kiffer/Desktop/MerryBot/LongChamp.png'))
+        await message.channel.send(file=discord.File('/home/pi/Desktop/Merrybot/LongChamp.png'))
 
     elif '?' in message.content:
         if random.random() <= .06:
@@ -48,19 +48,19 @@ async def on_message(message):
     elif 'bingus' in message.content:
         switch = random.randint(0,4)
         if (switch == 0):
-            await message.channel.send(file=discord.File('C:/Users/Kiffer/Desktop/MerryBot/bingus1.png'))
+            await message.channel.send(file=discord.File('/home/pi/Desktop/Merrybot/bingus1.png'))
 
         elif (switch == 1):
-            await message.channel.send(file=discord.File('C:/Users/Kiffer/Desktop/MerryBot/bingus2.JPG'))
+            await message.channel.send(file=discord.File('/home/pi/Desktop/Merrybot/bingus2.JPG'))
 
         elif (switch == 2):
-            await message.channel.send(file=discord.File('C:/Users/Kiffer/Desktop/MerryBot/bingus3.JPG'))
+            await message.channel.send(file=discord.File('/home/pi/Desktop/Merrybot/bingus3.JPG'))
 
         elif (switch == 3):
-            await message.channel.send(file=discord.File('C:/Users/Kiffer/Desktop/MerryBot/bingus4.png'))
+            await message.channel.send(file=discord.File('/home/pi/Desktop/Merrybot/bingus4.png'))
 
         elif (switch == 4):
-            await message.channel.send(file=discord.File('C:/Users/Kiffer/Desktop/MerryBot/bingus5.png'))
+            await message.channel.send(file=discord.File('/home/pi/Desktop/Merrybot/bingus5.png'))
 
 
 
