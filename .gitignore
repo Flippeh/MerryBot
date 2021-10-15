@@ -3,3 +3,5 @@ venv/
 
 .sublime-project
 login
+
+*.tar.xz
