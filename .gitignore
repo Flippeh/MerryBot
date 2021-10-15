@@ -1,7 +1,7 @@
 __pycache__/
 venv/
+Python-*.*.*/
 
-.sublime-project
 login
 
 *.tar.xz
