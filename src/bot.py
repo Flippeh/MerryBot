@@ -25,9 +25,7 @@ interjections = [
     "hey",
     "hello",
     "howdy",
-    "hi-ya",
     "hiya",
-    "hallo",
     "greetings"
 ]
 
@@ -52,9 +50,6 @@ async def on_member_join(member):
 async def on_message(msg):
     if (msg.channel.category_id != 885930648097927188):
         return
-    if (msg.channel.id == 898312842938318899 and
-            client.appinfo.id != 439484187100184577):
-        return
 
     msg.content = msg.content.lower()
 
@@ -65,6 +60,9 @@ async def on_message(msg):
             else:
                 await msg.channel.send('no')
 
+    elif ('longchamp' in msg.content):
+    	await msg.channel.send(file=dpy.File('./images/LongChamp.png'))
+   
     match msg.content:
         case "hi":
             await msg.channel.send(
@@ -72,9 +70,6 @@ async def on_message(msg):
 
         case "will an ai pass the turing test by 2022?":
             await msg.channel.send('uncertain')
-
-        case "longchamp":
-            await msg.channel.send(file=dpy.File('./images/LongChamp.png'))
 
         case "milkcraate":
             await msg.channel.send('hi I was just watching for a bit and wanted\
