@@ -4,15 +4,17 @@ __________
 https://discordpy.readthedocs.io/en/stable/
 """
 
+
 import asyncio
 import discord as dpy
 import json
-import pathlib
 import random
 import signal
 import sys
+import urllib.request
 
 from discord.ext import commands
+from pathlib import Path
 
 
 intents = dpy.Intents.default()
@@ -32,9 +34,15 @@ interjections = [
 EMOJIES = ["🔁", "⛔"]
 client = commands.Bot(command_prefix=prefix, activity=activity, intents=intents)
 
-def signal_handle(sig, frame):
-    client.logout()
+async def exit(channel=None):
+    if channel:
+        await channel.send('Bye!')
+    await client.close()
     sys.exit(0)
+
+
+def signal_handle(sig, frame):
+    exit()
 
 
 @client.event
@@ -91,6 +99,13 @@ async def on_command_error(ctx, error):
         raise error
 
 
+def get_random_bingus() -> Path:
+    images = Path('./images/bingus/').glob('*')
+    files = [x for x in images if x.is_file()]
+    chosen = files[random.randint(0, len(files) - 1)]
+    return chosen
+
+
 @client.event
 async def on_message(msg):
     # If message was sent by a bot then exit
@@ -120,9 +135,15 @@ async def on_message(msg):
             await msg.channel.send(file=dpy.File("./images/LongChamp.png"))
 
     if "bingus" in msg.content:
-        switch = random.randint(0, 4)
-        bingus_path = get_random_bingus()
-        await msg.channel.send(file=dpy.File(bingus_path))
+        if "bingus --list-all" in msg.content:
+            images = Path('./images/bingus/').glob('*')
+            files = [x for x in images if x.is_file()]
+            for f in files:
+                await msg.channel.send(f"Name: {f}", file=dpy.File(f))
+        else:
+            switch = random.randint(0, 4)
+            bingus_path = get_random_bingus()
+            await msg.channel.send(file=dpy.File(bingus_path))
 
     if ("?" in msg.content):
         if (random.random() < .06):
@@ -151,26 +172,63 @@ async def perms(ctx, *args):
 
 
 def _check(reaction, user):
-
+    print(user, reaction.message.author)
     return user == reaction.message.author and str(reaction.emoji) in EMOJIES
 
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def test(ctx):
+async def power(ctx):
     if not _valid_message(ctx): return
     msg = await ctx.channel.send("Select what you would like to do...")
     for emoji in EMOJIES:
         await msg.add_reaction(emoji)
+
+    def check(reaction, user):
+        return (user == ctx.message.author and str(reaction.emoji) in EMOJIES)
+
     try:
-        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=_check)
+        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
     except asyncio.TimeoutError:
         await ctx.channel.send('👎')
     else:
-        if str(reaction.emoji) == ":repeat:":
-            await ctx.channel.send("rebooting...")
-        if str(reaction.emoji) == ":no_entry:":
+        if str(reaction.emoji) == "🔁":
+            await ctx.channel.send("rebooting not supported yet.")
+
+        if str(reaction.emoji) == "⛔":
             await ctx.channel.send("Shutting down.")
+            await exit(ctx.channel)
+
+
+async def download(url, dest: Path):
+    print(url)
+    user_agent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64)"
+    headers = {"User-Agent": user_agent}
+    req = urllib.request.Request(url, {}, headers)
+    with urllib.request.urlopen(req) as wf:
+        with open(dest.resolve(), 'wb') as lf:
+            lf.write(wf.read())
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def new_bingus(ctx, *args):
+    if not _valid_message(ctx): return
+    if len(ctx.message.attachments) > 0:
+        image = ctx.message.attachments[0].url
+        await ctx.channel.send(image)
+        images = Path('./images/bingus/').glob('*')
+        num = len([x for x in images if x.is_file()])
+        file = Path(f"./images/bingus/bingus{num+1}.{image[-3:]}")
+        await download(image, file)
+    else:
+        await ctx.channel.send("No attachments found in your message")
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def update(ctx):
+    raise NotImplemented
 
 
 try:
