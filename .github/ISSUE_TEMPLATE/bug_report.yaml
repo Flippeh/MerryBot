@@ -2,7 +2,7 @@
 name: 🐞 Bug Report 🐞
 description: File a bug/issue report
 title: "[Bug]: "
-lables: ["bug", "triage"]
+labels: ["bug", "triage"]
 assignees:
   - perryBunn
 body:
