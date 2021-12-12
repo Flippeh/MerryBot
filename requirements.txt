@@ -1,2 +1,7 @@
+# Production
 discord
-pathlib
+
+# Dev
+pylint
+pytest
+
