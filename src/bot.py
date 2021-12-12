@@ -76,7 +76,7 @@ def _valid_channel(channel):
 def _valid_message(msg):
     return _valid_channel(msg.channel) and _test_bot()
 
-
+# pylint: disable=W0613
 @client.event
 async def on_member_join(member):
     """ When a new user joins the guild """
@@ -102,16 +102,16 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CommandNotFound):
         cmd = ctx.message.content.split()[0][1:]
         await ctx.send(
-            f":scream: `{cmd}` is not a valid command. If you would like it \
-            added create an issue on my repo and give it the label \
-            `enhancement` :arrow_right: \
-            https://github.com/Flippeh/MerryBot/issues")
+            f":scream: `{cmd}` is not a valid command. If you would like it " \
+            "added create an issue on my repo and give it the label " \
+            "enhancement` :arrow_right: " \
+            "https://github.com/Flippeh/MerryBot/issues")
     elif isinstance(error.__cause__, NotImplementedError):
         cmd = ctx.message.content.split()[0][1:]
         await ctx.send(
-            f":scream: `{cmd}` is not written yet. If you would like it added \
-            create an issue on my repo and give it the label `enhancement` \
-            :arrow_right: https://github.com/Flippeh/MerryBot/issues")
+            f":scream: `{cmd}` is not written yet. If you would like it added" \
+            " create an issue on my repo and give it the label `enhancement` " \
+            ":arrow_right: https://github.com/Flippeh/MerryBot/issues")
     else:
         print(type(error), error)
         raise error
@@ -214,6 +214,7 @@ async def power(ctx):
 
     try:
         # NOTE: This does not check if the right user has reacted.
+        # pylint: disable=W0612
         reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
     except asyncio.TimeoutError:
         await ctx.channel.send('👎')
