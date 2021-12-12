@@ -95,9 +95,12 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CommandNotFound):
         cmd = ctx.message.content.split()[0][1:]
         await ctx.send(f":scream: `{cmd}` is not a valid command. If you would like it added create an issue on my repo and give it the label `enhancement` :arrow_right: https://github.com/Flippeh/MerryBot/issues")
+    elif isinstance(error.__cause__, NotImplementedError):
+        cmd = ctx.message.content.split()[0][1:]
+        await ctx.send(f":scream: `{cmd}` is not written yet. If you would like it added create an issue on my repo and give it the label `enhancement` :arrow_right: https://github.com/Flippeh/MerryBot/issues")
     else:
+        print(type(error), error)
         raise error
-
 
 def get_random_bingus() -> Path:
     images = Path('./images/bingus/').glob('*')
@@ -228,7 +231,7 @@ async def new_bingus(ctx, *args):
 @client.command()
 @commands.has_permissions(administrator=True)
 async def update(ctx):
-    raise NotImplemented
+    raise NotImplementedError
 
 
 try:
