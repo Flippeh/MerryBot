@@ -130,6 +130,7 @@ async def on_message(msg):
     if _bot_msg(msg):
         return
 
+
     # If the message is in the test channel and not the test bot, exit
     if _test_channel(msg.channel) and not _test_bot():
         return
