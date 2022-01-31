@@ -5,3 +5,4 @@ Python-*.*.*/
 login
 
 *.tar.xz
+*.sublime-workspace

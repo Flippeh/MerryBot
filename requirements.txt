@@ -1,1 +1,7 @@
+# Production
 discord
+
+# Dev
+pylint
+pytest
+
