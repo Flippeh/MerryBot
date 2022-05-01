@@ -3,20 +3,24 @@ Resources:
 __________
 https://docs.pycord.dev/en/master/index.html
 """
-global client
 
-import asyncio
+from pathlib import Path
+
 import json
 import random
 import signal
 import sys
 import types
-import urllib.request
-
-from pathlib import Path
-from discord.ext import commands
-
 import discord as dpy
+
+from discord.ext import commands
+# pylint: disable=W0401
+# pylint: disable=E0401
+# pylint: disable=W0611
+from cmds import mock, new_bingus, perms, ping, power
+
+import lib
+import logger as lgr
 
 INTENTS = dpy.Intents.default()
 # pylint: disable=E0237
@@ -39,10 +43,7 @@ INTERJECTIONS = [
 EMOJIES = ["🔁", "⛔"]
 
 client = commands.Bot(command_prefix=PREFIX, activity=ACTIVITY, intents=INTENTS)
-
-import lib
-
-from cmds import *
+log = lgr.get_logger()
 
 
 async def bot_exit(channel=None):
@@ -67,12 +68,12 @@ async def on_connect():
 @client.event
 async def on_ready():
     """ Initializes the bot """
-
     import_list = []
-    for name, val in globals().items():
+    log.debug("began initialization")
+    for _, val in globals().items():
         if isinstance(val, types.ModuleType):
             if val.__name__[:4] == "cmds":
-                print(f"Found command {val.__name__} ...")
+                log.debug(f"Found command {val.__name__} ...")
                 import_list.append((val.__name__[5:], val))
 
     errored = []
@@ -80,8 +81,10 @@ async def on_ready():
         try:
             cmd = commands.Command(name=i[0], func=i[1].cmd)
         except AttributeError as err:
+            log.error(err)
             errored.append(i)
         except TypeError as err:
+            log.error(err)
             errored.append(i)
         try:
             client.add_command(cmd)
@@ -91,11 +94,11 @@ async def on_ready():
 
 
     for i in errored:
-        print(f"Command {i[0]} errored during initialization...")
+        log.info(f"Command {i[0]} errored during initialization...")
 
     print(f"Application ID: {client.appinfo.id}")
     print("MerryBot is ready!")
-    print(client.all_commands)
+    print(f"Commands: {client.all_commands}")
 
 
 # pylint: disable=W0613
@@ -208,10 +211,12 @@ async def update(ctx):
 
 def main():
     """ Init method """
+
     try:
         with open("login", encoding="UTF-8") as file:
             login = json.load(file)
     except Exception as err:
+        log.error(err)
         raise err
     else:
         client.run(login["token"])

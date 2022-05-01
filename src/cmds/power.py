@@ -3,11 +3,10 @@
 # NOTE: This command does not work at the moment.
 
 import asyncio
-import lib
-
 from discord.ext import commands
 
 import bot
+import lib
 
 @commands.has_permissions(administrator=True)
 async def cmd(ctx):
@@ -31,4 +30,4 @@ async def cmd(ctx):
 
         if str(reaction.emoji) == "⛔":
             await ctx.channel.send("Shutting down.")
-            await bot_exit(ctx.channel)
+            await bot.bot_exit(ctx.channel)
