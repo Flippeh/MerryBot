@@ -1,5 +1,5 @@
 # Production
-discord
+py-cord
 
 # Dev
 pylint

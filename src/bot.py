@@ -1,14 +1,16 @@
 """ MerryBot
 Resources:
 __________
-https://discordpy.readthedocs.io/en/stable/
+https://docs.pycord.dev/en/master/index.html
 """
+global client
 
 import asyncio
 import json
 import random
 import signal
 import sys
+import types
 import urllib.request
 
 from pathlib import Path
@@ -16,14 +18,15 @@ from discord.ext import commands
 
 import discord as dpy
 
-
 INTENTS = dpy.Intents.default()
 # pylint: disable=E0237
-# NOTE: This is not an error. This is how discord.py describes to modify the bots intents.
+# NOTE: This is not an error. This is how py-cord describes to modify the bots intents.
+# NOTE: This is to see member join/leave events
 INTENTS.members = True
 
 ACTIVITY = dpy.Activity(type=dpy.ActivityType.watching,
                         name="for someone to welcome!")
+# TODO: Have these variables stored in a yaml file and read on init
 PREFIX = '_'
 INTERJECTIONS = [
     "hi",
@@ -34,7 +37,13 @@ INTERJECTIONS = [
     "greetings"
 ]
 EMOJIES = ["🔁", "⛔"]
+
 client = commands.Bot(command_prefix=PREFIX, activity=ACTIVITY, intents=INTENTS)
+
+import lib
+
+from cmds import *
+
 
 async def bot_exit(channel=None):
     if channel:
@@ -42,45 +51,58 @@ async def bot_exit(channel=None):
     await client.close()
     sys.exit(0)
 
+
 # pylint: disable=W0613
 def signal_handle(sig, frame):
     bot_exit()
 # pylint: enable=W0613
 
+@client.event
+async def on_connect():
+    """ Makes sure that client.appinfo is populated """
+    if not hasattr(client, "appinfo"):
+        client.appinfo = await client.application_info()
+
 
 @client.event
 async def on_ready():
     """ Initializes the bot """
-    if not hasattr(client, "appinfo"):
-        client.appinfo = await client.application_info()
+
+    import_list = []
+    for name, val in globals().items():
+        if isinstance(val, types.ModuleType):
+            if val.__name__[:4] == "cmds":
+                print(f"Found command {val.__name__} ...")
+                import_list.append((val.__name__[5:], val))
+
+    errored = []
+    for i in import_list:
+        try:
+            cmd = commands.Command(name=i[0], func=i[1].cmd)
+        except AttributeError as err:
+            errored.append(i)
+        except TypeError as err:
+            errored.append(i)
+        try:
+            client.add_command(cmd)
+            print(f"Success adding {i[0]} ...")
+        except Exception:
+            print(f"Error adding {i[0]} as a command...")
+
+
+    for i in errored:
+        print(f"Command {i[0]} errored during initialization...")
 
     print(f"Application ID: {client.appinfo.id}")
     print("MerryBot is ready!")
+    print(client.all_commands)
 
-
-def _test_bot():
-    # Return false if test bot id
-    return client.appinfo.id == 439484187100184577
-
-
-def _test_channel(channel):
-    # bot_test channel
-    return channel.id == 898312842938318899
-
-
-def _valid_channel(channel):
-    # Return 'valid' if in social category
-    return channel.category_id == 885930648097927188
-
-
-def _valid_message(msg):
-    return _valid_channel(msg.channel) and _test_bot()
 
 # pylint: disable=W0613
 @client.event
 async def on_member_join(member):
     """ When a new user joins the guild """
-    if _test_bot():
+    if lib._test_bot(client):
         return
     try:
         guild = client.get_guild(151883696964632577)
@@ -90,10 +112,6 @@ async def on_member_join(member):
         return
     except Exception as err:
         raise err
-
-
-def _bot_msg(msg):
-    return msg.author.bot
 
 
 @client.event
@@ -116,6 +134,7 @@ async def on_command_error(ctx, error):
         print(type(error), error)
         raise error
 
+
 def get_random_bingus() -> Path:
     images = Path('./images/bingus/').glob('*')
     files = [x for x in images if x.is_file()]
@@ -127,34 +146,40 @@ def get_random_bingus() -> Path:
 async def on_message(msg):
     """ Event action for new messages """
     # If message was sent by a bot then exit
-    if _bot_msg(msg):
+    if lib._bot_msg(msg):
         return
 
-
     # If the message is in the test channel and not the test bot, exit
-    if _test_channel(msg.channel) and not _test_bot():
+    if lib._test_channel(msg.channel) and not lib._test_bot(client):
         return
 
     # Process command functions
     await client.process_commands(msg)
 
-    if not _valid_channel(msg.channel):
+    # If the message is not in a valid channel exit.
+    # NOTE: This would be depricated in the case where this bot replaces Auburn Esports#3661
+    if not lib._valid_channel(msg.channel):
         return
 
     msg.content = msg.content.lower()
     match msg.content:
         case "hi":
             await msg.channel.send(INTERJECTIONS[random.randint(0, len(INTERJECTIONS)-1)])
+            return
 
         case "will an ai pass the turing test by 2022?":
             await msg.channel.send("uncertain")
+            return
 
         case "milkcraate":
             await msg.channel.send("hi I was just watching for a bit and wanted\
  to say hi and I thought ur doing rly good")
+            return
+
 
     if "longchamp" in msg.content:
         await msg.channel.send(file=dpy.File("./images/LongChamp.png"))
+        return
 
     if "bingus" in msg.content:
         if "bingus --list-all" in msg.content:
@@ -165,6 +190,7 @@ async def on_message(msg):
         else:
             bingus_path = get_random_bingus()
             await msg.channel.send(file=dpy.File(bingus_path))
+        return
 
     if "?" in msg.content:
         if random.random() < .06:
@@ -175,91 +201,10 @@ async def on_message(msg):
 
 
 @client.command()
-async def ping(ctx):
-    if not _valid_message(ctx):
-        return
-    await ctx.channel.send("pong")
-
-
-@client.command()
-async def mock(ctx, *args):
-    if not _valid_message(ctx):
-        return
-    await ctx.channel.send(" ".join(args))
-
-
-@client.command()
-async def perms(ctx):
-    if not _valid_message(ctx):
-        return
-    await ctx.channel.send(f"You have {ctx.author.permissions_in(ctx.channel)} permissions")
-
-
-def _check(reaction, user):
-    print(user, reaction.message.author)
-    return user == reaction.message.author and str(reaction.emoji) in EMOJIES
-
-
-@client.command()
-@commands.has_permissions(administrator=True)
-async def power(ctx):
-    """ command to power off and restart the bot """
-    if not _valid_message(ctx):
-        return
-    msg = await ctx.channel.send("Select what you would like to do...")
-    for emoji in EMOJIES:
-        await msg.add_reaction(emoji)
-
-    def check(reaction, user):
-        return user == ctx.message.author and str(reaction.emoji) in EMOJIES
-
-    try:
-        # NOTE: This does not check if the right user has reacted.
-        # pylint: disable=W0612
-        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
-    except asyncio.TimeoutError:
-        await ctx.channel.send('👎')
-    else:
-        if str(reaction.emoji) == "🔁":
-            await ctx.channel.send("rebooting not supported yet.")
-
-        if str(reaction.emoji) == "⛔":
-            await ctx.channel.send("Shutting down.")
-            await bot_exit(ctx.channel)
-
-
-async def download(url, dest: Path):
-    """ Downloads from the url and saves to a destination """
-    print(url)
-    user_agent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64)"
-    headers = {"User-Agent": user_agent}
-    req = urllib.request.Request(url, {}, headers)
-    with urllib.request.urlopen(req) as webfile:
-        with open(dest.resolve(), 'wb') as localfile:
-            localfile.write(webfile.read())
-
-
-@client.command()
-@commands.has_permissions(administrator=True)
-async def new_bingus(ctx):
-    """ Creates a new bingus image """
-    if not _valid_message(ctx):
-        return
-    if len(ctx.message.attachments) > 0:
-        image = ctx.message.attachments[0].url
-        await ctx.channel.send(image)
-        images = Path('./images/bingus/').glob('*')
-        num = len([x for x in images if x.is_file()])
-        file = Path(f"./images/bingus/bingus{num+1}.{image[-3:]}")
-        await download(image, file)
-    else:
-        await ctx.channel.send("No attachments found in your message")
-
-
-@client.command()
 @commands.has_permissions(administrator=True)
 async def update(ctx):
     raise NotImplementedError
+
 
 def main():
     """ Init method """
@@ -272,6 +217,7 @@ def main():
         client.run(login["token"])
     finally:
         signal.signal(signal.SIGINT, signal_handle)
+
 
 if __name__ == '__main__':
     main()

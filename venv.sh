@@ -10,7 +10,7 @@ version=$(python3 -c 'import sys; print(sys.version_info[:])')
 version_att2=$(python3.10 -c 'import sys; print(sys.version_info[:])')
 pattern="(3, 10, 1, 'final', *)"
 
-if [[ $version =~ $pattern ]]```
+if [[ $version =~ $pattern ]]
 then
 	echo "Python 3.10.1 already installed."
 else
