@@ -42,7 +42,7 @@ def _valid_channel(channel):
     return channel.category_id == 885930648097927188
 
 
-async def _download(url, dest: Path):
+async def download(url, dest: Path):
     """ Downloads from the url and saves to a destination """
     print(url)
     user_agent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64)"

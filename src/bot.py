@@ -18,8 +18,8 @@ from discord.ext import commands
 # pylint: disable=E0401
 # pylint: disable=W0611
 from cmds import mock, new_bingus, perms, ping, power
+from lib import depricated, download, msgcheck
 
-import lib
 import logger as lgr
 
 INTENTS = dpy.Intents.default()
@@ -105,7 +105,7 @@ async def on_ready():
 @client.event
 async def on_member_join(member):
     """ When a new user joins the guild """
-    if lib._test_bot(client):
+    if msgcheck.test_bot(client):
         return
     try:
         guild = client.get_guild(151883696964632577)
@@ -149,11 +149,11 @@ def get_random_bingus() -> Path:
 async def on_message(msg):
     """ Event action for new messages """
     # If message was sent by a bot then exit
-    if lib._bot_msg(msg):
+    if msgcheck.bot_msg(msg):
         return
 
     # If the message is in the test channel and not the test bot, exit
-    if lib._test_channel(msg.channel) and not lib._test_bot(client):
+    if msgcheck.test_channel(msg.channel) and not msgcheck.test_bot(client):
         return
 
     # Process command functions
@@ -161,7 +161,7 @@ async def on_message(msg):
 
     # If the message is not in a valid channel exit.
     # NOTE: This would be depricated in the case where this bot replaces Auburn Esports#3661
-    if not lib._valid_channel(msg.channel):
+    if not msgcheck.valid_channel(msg.channel):
         return
 
     msg.content = msg.content.lower()
@@ -178,7 +178,6 @@ async def on_message(msg):
             await msg.channel.send("hi I was just watching for a bit and wanted\
  to say hi and I thought ur doing rly good")
             return
-
 
     if "longchamp" in msg.content:
         await msg.channel.send(file=dpy.File("./images/LongChamp.png"))

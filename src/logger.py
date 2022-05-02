@@ -36,7 +36,8 @@ class ColoredFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def get_logger() -> Logger:
+def get_logger(name: str="MerryBot", file_lvl: str="DEBUG",
+               stream_lvl: str="DEBUG", log_dir_path: str="LOGS",) -> Logger:
     """
       Method will return a logging object with stdout and file handlers
       Parameters:
@@ -44,7 +45,7 @@ def get_logger() -> Logger:
       Returns:
       Logger: logging.Logger object
     """
-    log = logging.getLogger("MerryBot")
+    log = logging.getLogger(name)
     log.setLevel("DEBUG")
 
     fmt = "%(asctime)s: %(name)s: %(levelname)s: %(message)s"
@@ -53,15 +54,15 @@ def get_logger() -> Logger:
     date = datetime.now()
     time = date.strftime("%Y%m%d%H%M")
 
-    log_dir = Path(f"LOGS/{time[:8]}")
+    log_dir = Path(f"{log_dir_path}/{time[:8]}")
     log_dir.mkdir(exist_ok=True, parents=True)
 
-    file_name = (log_dir / f"discord_bot_c{time}.log").as_posix()
-    file_handle = logging.FileHandler(file_name, encoding="utf-8")
-    file_handle.setLevel("DEBUG")
+    stream_name = (log_dir / f"{name}_c{time}.log").as_posix()
+    file_handle = logging.FileHandler(stream_name, encoding="utf-8")
+    file_handle.setLevel(file_lvl)
 
     stream_handle = logging.StreamHandler()
-    stream_handle.setLevel("DEBUG")
+    stream_handle.setLevel(stream_lvl)
 
     file_fmt = logging.Formatter(fmt)
     stream_fmt = ColoredFormatter(fmt)
